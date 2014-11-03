@@ -157,6 +157,7 @@ classdef BackgroundModel < handle
 		obj.bgStat.devH = var(frames(:, :, 1, begInd:endInd), 0, nDims) .^ 0.5;
 
 		obj.setNearToZero();
+		obj.setBgEdges();
 
 		% Initializes 4-connected pixels
 
@@ -201,7 +202,21 @@ classdef BackgroundModel < handle
 		% Cuts off connections where an edge appears in the image
 		% frame that is not present in the background model.
 
-		% TODO: not implemented yet.
+		% TODO: implement 8-connected
+		V = im(:, :, 3);
+		vertical = abs(V(2:end, :) - V(1:end-1, :));
+		horizontal = abs(V(:, 2:end) - V(:, 1:end-1));
+		connections((vertical - obj.bgEdges.vertical) > obj.tau) = 0;
+		connections((horizontal - obj.bgEdges.horizontal) > obj.tau) = 0;
+	end
+
+	function [] = setBgEdges(obj)
+		% TODO: for simplicity, we use only the V channel to determine 
+		% 4-connected edges for now.
+		V = obj.bgStat.meanV;
+		obj.bgEdges = struct();
+		obj.bgEdges.vertical = abs(V(2:end, :) - V(1:end-1, :));
+		obj.bgEdges.horizontal = abs(V(:, 2:end) - V(:, 1:end-1));
 	end
 
 	function [foreground] = subtractAt(obj, videoReader, i)
