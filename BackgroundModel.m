@@ -102,7 +102,7 @@ classdef BackgroundModel < handle
 		obj.bgStat.width = w;
 
 		% print-in-place
-		pip = printUtility('Processing %d frames: #', nFramesToSample);
+		pip = printUtility('Sampling from %d frames: #', nFrames);
 
 		for i = 1:nFramesToSample
 			ind = frameInd(i);
