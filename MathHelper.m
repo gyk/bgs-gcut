@@ -1,4 +1,9 @@
 classdef MathHelper
+	properties (Constant)
+	% scale parameter from MAD to SD
+	MAD_TO_SD = 1 / norminv(3 / 4);
+	end
+
 	methods (Static)
 	function d = angleDiff(th1, th2)
 	% Returns the difference between two angles in radians.
