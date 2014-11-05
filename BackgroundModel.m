@@ -129,11 +129,11 @@ classdef BackgroundModel < handle
 		obj.bgStat.meanV = frames(:, :, 3, midInd);
 
 		% estimates SD by MAD
-		frames(:, :, 2, begInd:endInd) = sort(abs(bsxfun(@minus, ...
-			frames(:, :, 2, begInd:endInd), obj.bgStat.meanS)), nDims);
+		frames(:, :, 2, :) = sort(abs(bsxfun(@minus, ...
+			frames(:, :, 2, :), obj.bgStat.meanS)), nDims);
 		obj.bgStat.devS = frames(:, :, 2, midInd) * MathHelper.MAD_TO_SD;
-		frames(:, :, 3, begInd:endInd) = sort(abs(bsxfun(@minus, ...
-			frames(:, :, 3, begInd:endInd), obj.bgStat.meanV)), nDims);
+		frames(:, :, 3, :) = sort(abs(bsxfun(@minus, ...
+			frames(:, :, 3, :), obj.bgStat.meanV)), nDims);
 		obj.bgStat.devV = frames(:, :, 3, midInd) * MathHelper.MAD_TO_SD;
 
 		% now we don't need S & V
@@ -163,8 +163,8 @@ classdef BackgroundModel < handle
 		meanH = mod(meanH + meanH_ - 0.5, 1.0);
 
 		obj.bgStat.meanH = meanH;
-		frames(:, :, 1, begInd:endInd) = sort(abs(bsxfun(@minus, ...
-			frames(:, :, 1, begInd:endInd), obj.bgStat.meanH)), nDims);
+		frames(:, :, 1, :) = sort(abs(bsxfun(@minus, ...
+			frames(:, :, 1, :), obj.bgStat.meanH)), nDims);
 		obj.bgStat.devH = frames(:, :, 1, midInd) * MathHelper.MAD_TO_SD;
 
 		obj.setNearToZero();
