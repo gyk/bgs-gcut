@@ -121,11 +121,20 @@ classdef BackgroundModel < handle
 		frames(:, :, 2:3, :) = sort(frames(:, :, 2:3, :), nDims);
 		begInd = floor((1 - obj.dataRange) / 2 * nFramesToSample);
 		endInd = nFramesToSample - begInd;
+		midInd = round((begInd + endInd) / 2);
 
-		obj.bgStat.meanS = mean(frames(:, :, 2, begInd:endInd), nDims);
-		obj.bgStat.meanV = mean(frames(:, :, 3, begInd:endInd), nDims);
-		obj.bgStat.devS = var(frames(:, :, 2, begInd:endInd), 0, nDims) .^ 0.5;
-		obj.bgStat.devV = var(frames(:, :, 3, begInd:endInd), 0, nDims) .^ 0.5;
+		% Computes trimmed median. It is mostly equivalent to trimmed 
+		% median under the assumption of the paper.
+		obj.bgStat.meanS = frames(:, :, 2, midInd);
+		obj.bgStat.meanV = frames(:, :, 3, midInd);
+
+		% estimates SD by MAD
+		frames(:, :, 2, begInd:endInd) = sort(abs(bsxfun(@minus, ...
+			frames(:, :, 2, begInd:endInd), obj.bgStat.meanS)), nDims);
+		obj.bgStat.devS = frames(:, :, 2, midInd) * MathHelper.MAD_TO_SD;
+		frames(:, :, 3, begInd:endInd) = sort(abs(bsxfun(@minus, ...
+			frames(:, :, 3, begInd:endInd), obj.bgStat.meanV)), nDims);
+		obj.bgStat.devV = frames(:, :, 3, midInd) * MathHelper.MAD_TO_SD;
 
 		% now we don't need S & V
 		frames(:, :, 2:3, :) = [];
@@ -149,12 +158,14 @@ classdef BackgroundModel < handle
 		frames = mod(bsxfun(@plus, ...
 			frames, (0.5 - meanH_)), 1.0);
 		frames(:, :, 1, :) = sort(frames(:, :, 1, :), nDims);
-		meanH = mean(frames(:, :, 1, begInd:endInd), nDims);
+		meanH = frames(:, :, 1, midInd);
 		% re-centers the data
 		meanH = mod(meanH + meanH_ - 0.5, 1.0);
 
 		obj.bgStat.meanH = meanH;
-		obj.bgStat.devH = var(frames(:, :, 1, begInd:endInd), 0, nDims) .^ 0.5;
+		frames(:, :, 1, begInd:endInd) = sort(abs(bsxfun(@minus, ...
+			frames(:, :, 1, begInd:endInd), obj.bgStat.meanH)), nDims);
+		obj.bgStat.devH = frames(:, :, 1, midInd) * MathHelper.MAD_TO_SD;
 
 		obj.setNearToZero();
 		obj.setBgEdges();
