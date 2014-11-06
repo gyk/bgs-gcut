@@ -3,7 +3,6 @@ classdef BackgroundModel < handle
 	properties
 	% Parameters: 
 	preprocessor;
-	dataRange;
 	z_H;
 	z_V;
 	W_H;
@@ -30,9 +29,6 @@ classdef BackgroundModel < handle
 	% it by setting `tau` to a value >= 1.
 
 		p = inputParser;
-		addParamValue(p, 'dataRange', 0.2, ...
-			@(x) isnumeric(x) && x > 0 && x < 1);
-
 		addParamValue(p, 'z_H', 0.1, @isnumeric);
 		addParamValue(p, 'z_V', 0.1, @isnumeric);
 
@@ -54,7 +50,6 @@ classdef BackgroundModel < handle
 			obj.(fname) = p.Results.(fname);
 		end
 
-		setField('dataRange');
 		setField('preprocessor');
 		setField('z_H');
 		setField('z_V');
@@ -68,9 +63,8 @@ classdef BackgroundModel < handle
 	end
 
 	function [] = train(obj, videoReader, nSamples, everyNth)
-	% The background is modeled on the first `nSamples` frames 
-	% using the trim mean and variance on the middle `dataRange` 
-	% of the data.
+	% The background is modeled by sampling `nSamples` frames from the  
+	% video using median and median absolute deviation as estimators.
 
 		if ~exist('nSamples', 'var')
 			nSamples = 300;
@@ -125,9 +119,7 @@ classdef BackgroundModel < handle
 		nDims = ndims(frames);  % == 4
 		% sorts S & V channels
 		frames(:, :, 2:3, :) = sort(frames(:, :, 2:3, :), nDims);
-		begInd = floor((1 - obj.dataRange) / 2 * nFramesToSample);
-		endInd = nFramesToSample - begInd;
-		midInd = round((begInd + endInd) / 2);
+		midInd = round(nFramesToSample / 2);
 
 		% Computes trimmed median. It is mostly equivalent to trimmed 
 		% median under the assumption of the paper.
