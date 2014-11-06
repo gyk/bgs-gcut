@@ -22,6 +22,12 @@ classdef BackgroundModel < handle
 
 	methods
 	function obj = BackgroundModel(varargin)
+	% Setting `nu` to 0 makes the algorithm degenerate to something similar
+	% to vanilla mixture of Gaussians: a pixel will be classified as foreground
+	% if its weighted deviation > `Delta_FG`.
+	% 
+	% Neighbor weights are set to 0 where an edge appears in the image. Disable 
+	% it by setting `tau` to a value >= 1.
 
 		p = inputParser;
 		addParamValue(p, 'dataRange', 0.2, ...
@@ -210,6 +216,12 @@ classdef BackgroundModel < handle
 
 	function [connections] = makeConnections(obj, im)
 		connections = obj.connections;
+
+		% does not consider edges
+		if obj.tau >= 1
+			return;
+		end
+
 		% Cuts off connections where an edge appears in the image
 		% frame that is not present in the background model.
 
@@ -245,8 +257,16 @@ classdef BackgroundModel < handle
 		w = size(im, 2);
 
 		hsv = rgb2hsv(im);
+
 		% the edge weights from pixel nodes to source
 		bgPenal = obj.zScore(hsv);
+
+		% does not set connections between pixel nodes
+		if obj.nu == 0
+			foreground = bgPenal > obj.Delta_FG;
+			return;
+		end
+
 		% the edge weights from pixel nodes to sink
 		fgPenal = repmat(obj.Delta_FG, size(bgPenal));
 
