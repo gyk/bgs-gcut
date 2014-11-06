@@ -72,17 +72,18 @@ classdef BackgroundModel < handle
 			nSamples = ceil(nSamples);
 		end
 
-		if ~exist('everyNth', 'var')
-			everyNth = 1;
-		end
-
 		nFrames = videoReader.NumberOfFrames;
-		endFrame = min(nFrames, everyNth * nSamples - (everyNth - 1));
-		endFrame = endFrame - mod(endFrame - 1, everyNth);
-		frameInd = [1:everyNth:endFrame];
+
+		if ~exist('everyNth', 'var')
+			everyNth = nFrames / nSamples;
+		end
+		assert(everyNth >= 1);
+
+		endFrame = min(nFrames, ceil(everyNth * nSamples - (everyNth - 1)));
+		frameInd = round(1:everyNth:endFrame);
 		nFramesToSample = numel(frameInd);
-		fprintf(['Modelling background from #1 to #%d (interval = %d, ', ...
-			'total = %d)\n'], endFrame, everyNth, nFramesToSample);
+		fprintf(['Modelling background from #1 to #%d (interval = %s, ', ...
+			'total = %d)\n'], endFrame, num2str(everyNth), nFramesToSample);
 
 		% inspect
 		im = videoReader.read(1);
@@ -174,6 +175,8 @@ classdef BackgroundModel < handle
 		% value `diagWeight`.
 		obj.connections = ...
 			pixCon([obj.bgStat.height, obj.bgStat.width]);
+
+		fprintf('Done.\n');
 	end
 
 	function [z] = zScore(obj, imHSV)

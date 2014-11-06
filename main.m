@@ -4,7 +4,7 @@ vReader = VideoReader(videoPath);
 
 %% Trains background model
 bgModel = BackgroundModel();
-bgModel.train(vReader, 200, 3);
+bgModel.train(vReader, 200);
 
 %% Extracts foreground for each video frame
 nFrames = vReader.NumberOfFrames;
