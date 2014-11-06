@@ -72,7 +72,7 @@ classdef BackgroundModel < handle
 			nSamples = ceil(nSamples);
 		end
 
-		nFrames = videoReader.NumberOfFrames;
+		nFrames = getNFrames(videoReader);
 
 		if ~exist('everyNth', 'var')
 			everyNth = nFrames / nSamples;
