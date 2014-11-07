@@ -6,8 +6,15 @@ vReader = VideoReader(videoPath);
 bgModel = BackgroundModel();
 bgModel.train(vReader, 200);
 
+%% Checks background model
+StatInspector.visualizeBgStat(bgModel.bgStat);
+pause;
+StatInspector.visualizeBgEdges(bgModel.bgEdges, true);
+pause;
+StatInspector.threeSigma(bgModel.bgStat, vReader);
+
 %% Extracts foreground for each video frame
-nFrames = vReader.NumberOfFrames;
+nFrames = getNFrames(vReader);
 for i = 1:3:nFrames
 	im = vReader.read(i);
 	fg = bgModel.subtract(im);
