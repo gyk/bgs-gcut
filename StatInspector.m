@@ -135,5 +135,38 @@ classdef StatInspector
 		plot([fromR'; toR'], [fromC'; toC'], 'b');
 		axis equal;
 	end
+
+	function connections2SVG(connections, h, w, filePath)
+	% The generated SVG has been tested in Chrome and Firefox.
+		[from, to] = find(connections);
+
+		% Since the connections are symmetric, we only consider the 
+		% left -> right / up -> down links.
+		leftRight = (to - from  == h);
+		upDown = (to - from  == 1);
+		from = from(leftRight | upDown);
+		to = to(leftRight | upDown);
+
+		[fromR, fromC] = ind2sub([h, w], from);
+		[toR, toC] = ind2sub([h, w], to);
+		svgBegin = sprintf([
+			'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n', ...
+			'<svg\n', ...
+			'xmlns="http://www.w3.org/2000/svg"\n', ...
+			'height="%.0f" width="%.0f">\n', ...
+		], h + 2, w + 2);
+		svgEnd = '</svg>\n';
+
+		svgBody = sprintf([
+			'<line x1="%.0f" y1="%.0f" x2="%.0f" y2="%.0f" ', ...
+			'stroke="red" stroke-width="0.1"/>\n', ...
+		], [fromC, fromR, toC, toR]');
+
+		fid = fopen(filePath, 'w');
+		fprintf(fid, svgBegin);
+		fprintf(fid, svgBody);
+		fprintf(fid, svgEnd);
+		fclose(fid);
+	end
 	end
 end
