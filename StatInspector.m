@@ -127,35 +127,15 @@ classdef StatInspector
 		[fromR, fromC] = ind2sub([h, w], from);
 		[toR, toC] = ind2sub([h, w], to);
 
-		fromR = fromR * a;
-		fromC = fromC * a;
-		toR = toR * a;
-		toC = toC * a;
+		from = [fromR, fromC] * a;
+		to = [toR, toC] * a;
 
-		% The unvectorized version of `drawLine`:
-		% 
-		% 	function drawLine(r1, c1, r2, c2)
-		% 		dr = sign(r2 - r1);
-		% 		dc = sign(c2 - c1);
-		% 		while ~(r1 == r2 && c1 == c2)
-		% 			im(r1, c1) = true;
-		% 			r1 = r1 + dr;
-		% 			c1 = c1 + dc;
-		% 		end
-		% 	end
-
-		function drawLine(r1, c1, r2, c2)
-			dr = sign(r2 - r1);
-			dc = sign(c2 - c1);
-			for i = 1:a
-				update = accumarray([r1 c1], true, size(im));
-				im = im | update;
-				r1 = r1 + dr;
-				c1 = c1 + dc;
-			end
+		d = sign(to - from);
+		for i = 1:a
+			im = im | accumarray(from, true, size(im));
+			from = from + d;
 		end
 
-		drawLine(fromR, fromC, toR, toC);
 		warning('off', 'Images:initSize:adjustingMag');
 		hImage = imshow(~im);
 		imscrollpanel(gcf, hImage);
