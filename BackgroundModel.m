@@ -222,10 +222,19 @@ classdef BackgroundModel < handle
 
 		% TODO: implement 8-connected
 		V = im(:, :, 3);
+		[h, w] = size(V);
 		vertical = abs(V(2:end, :) - V(1:end-1, :));
 		horizontal = abs(V(:, 2:end) - V(:, 1:end-1));
-		connections((vertical - obj.bgEdges.vertical) > obj.tau) = 0;
-		connections((horizontal - obj.bgEdges.horizontal) > obj.tau) = 0;
+		vertInd = find([(vertical - obj.bgEdges.vertical) > obj.tau; ...
+			zeros(1, w)]);
+		horzInd = find([(horizontal - obj.bgEdges.horizontal) > obj.tau, ...
+			zeros(h, 1)]);
+
+		[spH, spW] = size(connections);
+		spVert = sparse(vertInd, vertInd + 1, true, spH, spW, numel(vertInd));
+		spHorz = sparse(horzInd, horzInd + h, true, spH, spW, numel(horzInd));
+		connections(spVert) = 0;
+		connections(spHorz) = 0;
 	end
 
 	function [] = setBgEdges(obj)
