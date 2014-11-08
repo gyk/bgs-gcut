@@ -112,14 +112,8 @@ classdef StatInspector
 	end
 
 	function visualizeConnections(connections, h, w)
-		if h * w > 10000
-			fprintf([
-				'This function aims at checking the correctness at ', ...
-				'small scale.\nIt is extremly slow for large graph.\n', ...
-				'[Paused]\n', ...
-			]);
-			pause;
-		end
+		a = 5;
+		im = false(h * a, w * a);
 
 		[from, to] = find(connections);
 
@@ -132,8 +126,40 @@ classdef StatInspector
 
 		[fromR, fromC] = ind2sub([h, w], from);
 		[toR, toC] = ind2sub([h, w], to);
-		plot([fromR'; toR'], [fromC'; toC'], 'b');
-		axis equal;
+
+		fromR = fromR * a;
+		fromC = fromC * a;
+		toR = toR * a;
+		toC = toC * a;
+
+		% The unvectorized version of `drawLine`:
+		% 
+		% 	function drawLine(r1, c1, r2, c2)
+		% 		dr = sign(r2 - r1);
+		% 		dc = sign(c2 - c1);
+		% 		while ~(r1 == r2 && c1 == c2)
+		% 			im(r1, c1) = true;
+		% 			r1 = r1 + dr;
+		% 			c1 = c1 + dc;
+		% 		end
+		% 	end
+
+		function drawLine(r1, c1, r2, c2)
+			dr = sign(r2 - r1);
+			dc = sign(c2 - c1);
+			for i = 1:a
+				update = accumarray([r1 c1], true, size(im));
+				im = im | update;
+				r1 = r1 + dr;
+				c1 = c1 + dc;
+			end
+		end
+
+		drawLine(fromR, fromC, toR, toC);
+		warning('off', 'Images:initSize:adjustingMag');
+		hImage = imshow(~im);
+		imscrollpanel(gcf, hImage);
+		warning('on', 'Images:initSize:adjustingMag');
 	end
 
 	function connections2SVG(connections, h, w, filePath)
