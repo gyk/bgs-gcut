@@ -36,7 +36,7 @@ classdef BackgroundModel < handle
 		addParamValue(p, 'W_S', 0.2, @isnumeric);
 		addParamValue(p, 'W_V', 0.4, @isnumeric);
 
-		addParamValue(p, 'tau', 0.1, @isnumeric);
+		addParamValue(p, 'tau', 0.025, @isnumeric);
 		addParamValue(p, 'Delta_FG', 1.2, @isnumeric);
 		addParamValue(p, 'diagWeight', 0.3204, ...
 			@(x) isnumeric(x) && x > 0 && x < 1);
