@@ -174,7 +174,7 @@ classdef BackgroundModel < handle
 		% FIXME: diagonal connections should be initialized to the 
 		% value `diagWeight`.
 		obj.connections = ...
-			pixCon([obj.bgStat.height, obj.bgStat.width]);
+			pixCon2d([obj.bgStat.height, obj.bgStat.width]);
 
 		fprintf('Done.\n');
 	end
@@ -235,6 +235,7 @@ classdef BackgroundModel < handle
 		spHorz = sparse(horzInd, horzInd + h, true, spH, spW, numel(horzInd));
 		connections(spVert) = 0;
 		connections(spHorz) = 0;
+		assert(nnz(connections) + nnz(spVert) + nnz(spHorz) == nnz(obj.connections));
 	end
 
 	function [] = setBgEdges(obj)
