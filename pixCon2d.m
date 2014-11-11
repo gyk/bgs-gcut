@@ -9,12 +9,15 @@ function [conn] = pixCon2d(imageSize, diagWeight)
 		diagWeight = 0;
 	end
 
-	assert(diagWeight >= 0);
+	hasDiag = diagWeight > 0;
 
 	nRows = imageSize(1);
 	nCols = imageSize(2);
 	nPixels = nRows * nCols;
-	nLinks = ((nRows - 1) * nCols + nRows * (nCols - 1)) * 2;
+	nLinks = (nRows - 1) * nCols + nRows * (nCols - 1);
+	if hasDiag
+		nLinks = nLinks + (nRows - 1) * (nCols - 1) * 2;
+	end
 	indices = (1:nPixels)';
 
 	% horizontal
@@ -28,7 +31,7 @@ function [conn] = pixCon2d(imageSize, diagWeight)
 	jIndV = iIndV + 1;
 	sV = ones(numel(iIndV), 1);
 
-	if diagWeight == 0
+	if ~hasDiag
 		[iIndD, jIndD, sD] = deal([]);
 		[iIndAD, jIndAD, sAD] = deal([]);
 	else
@@ -48,7 +51,8 @@ function [conn] = pixCon2d(imageSize, diagWeight)
 	js = [jIndH; jIndV; jIndD; jIndAD];
 	ss = [sH; sV; sD; sAD];
 
-	assert(numel(is) + numel(js) == nLinks);
+	assert(numel(is) == numel(js) && numel(js) == numel(ss) && ...
+		numel(ss) == nLinks);
 
 	% If symmetric matrix is needed, use
 	% 
