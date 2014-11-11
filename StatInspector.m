@@ -44,7 +44,7 @@ classdef StatInspector
 			S = im(:, :, 2);
 			V = im(:, :, 3);
 
-			absDiffH = floor(abs(H - mH) .* dHInv);
+			absDiffH = floor(abs(mod(H - mH + 0.5, 1) - 0.5) .* dHInv);
 			sigmaH = cumsum(histc(absDiffH(:), 0:2));
 
 			absDiffS = floor(abs(S - mS) .* dSInv);

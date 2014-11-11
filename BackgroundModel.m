@@ -159,11 +159,10 @@ classdef BackgroundModel < handle
 		frames(:, :, 1, :) = sort(frames(:, :, 1, :), nDims);
 		meanH = frames(:, :, 1, midInd);
 		% re-centers the data
-		meanH = mod(meanH + meanH_ - 0.5, 1.0);
+		obj.bgStat.meanH = mod(meanH + meanH_ - 0.5, 1.0);
 
-		obj.bgStat.meanH = meanH;
 		frames(:, :, 1, :) = sort(abs(bsxfun(@minus, ...
-			frames(:, :, 1, :), obj.bgStat.meanH)), nDims);
+			frames(:, :, 1, :), meanH)), nDims);
 		obj.bgStat.devH = frames(:, :, 1, midInd) * MathHelper.MAD_TO_SD;
 
 		obj.setNearToZero();
@@ -188,13 +187,17 @@ classdef BackgroundModel < handle
 
 		bg = obj.bgStat;
 
-		% Eq. (1)
-		dH_ = abs(imH - bg.meanH) .* min(imS, bg.meanS);
-		% Eq. (2)
-		dH = max(0, 2*pi * dH_ - obj.z_H) ./ bg.devH;
+		% FIXME: I think Eq. (1), (2) and (4) in the original paper might  
+		% be incorrect.
+
+		% Eq. (1) - ?
+		dH_ = abs(mod(imH - bg.meanH + 0.5, 1) - 0.5) .* ...
+			(min(imS, bg.meanS) ./ bg.meanS);
+		% Eq. (2) - ?
+		dH = max(0, dH_ - obj.z_H) ./ bg.devH;
 		% Eq. (3)
 		dS = abs(imS - bg.meanS) ./ bg.devS;
-		% Eq. (4) - something wrong here?
+		% Eq. (4) - ?
 		dV = max(0, abs(imV - bg.meanV + obj.z_V / 2) - obj.z_V) ./ bg.devV;
 		z = dH .* obj.W_H + dS .* obj.W_S + dV .* obj.W_V;
 	end
