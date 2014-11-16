@@ -224,10 +224,12 @@ classdef BackgroundModel < handle
 		% frame that is not present in the background model.
 
 		% TODO: implement 8-connected
+		H = im(:, :, 1);
+		S = im(:, :, 2);
 		V = im(:, :, 3);
-		[h, w] = size(V);
-		vertical = abs(V(2:end, :) - V(1:end-1, :));
-		horizontal = abs(V(:, 2:end) - V(:, 1:end-1));
+		[h, w, ~] = size(im);
+		[vertical, horizontal] = BackgroundModel.findEdges(H, S, V);
+
 		vertInd = find([(vertical - obj.bgEdges.vertical) > obj.tau; ...
 			zeros(1, w)]);
 		horzInd = find([(horizontal - obj.bgEdges.horizontal) > obj.tau, ...
@@ -242,12 +244,9 @@ classdef BackgroundModel < handle
 	end
 
 	function [] = setBgEdges(obj)
-		% TODO: for simplicity, we use only the V channel to determine 
-		% 4-connected edges for now.
-		V = obj.bgStat.meanV;
 		obj.bgEdges = struct();
-		obj.bgEdges.vertical = abs(V(2:end, :) - V(1:end-1, :));
-		obj.bgEdges.horizontal = abs(V(:, 2:end) - V(:, 1:end-1));
+		[obj.bgEdges.vertical,  obj.bgEdges.horizontal] = ...
+			BackgroundModel.findEdges(obj.bgStat.meanH, obj.bgStat.meanS, obj.bgStat.meanV);
 	end
 
 	function [foreground] = subtractAt(obj, videoReader, i)
@@ -288,6 +287,20 @@ classdef BackgroundModel < handle
 	function im = videoPreprocess(im)
 		im = imresize(im, 0.5);
 		im = double(im) / 255;
+	end
+
+	function [vertical, horizontal] = findEdges(H, S, V)
+		vertH = abs(mod(H(2:end, :) - H(1:end-1, :) + 0.5, 1) - 0.5);
+		horzH = abs(mod(H(:, 2:end) - H(:, 1:end-1) + 0.5, 1) - 0.5);
+
+		vertS = abs(S(2:end, :) - S(1:end-1, :));
+		horzS = abs(S(:, 2:end) - S(:, 1:end-1));
+
+		vertV = abs(V(2:end, :) - V(1:end-1, :));
+		horzV = abs(V(:, 2:end) - V(:, 1:end-1));
+
+		vertical = (vertH + vertS + vertV) * (1/3);
+		horizontal = (horzH + horzS + horzV) * (1/3);
 	end
 
 	function label = graphCut(C, P)
