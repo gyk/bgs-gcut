@@ -2,6 +2,7 @@
 *.zip
 *.avi
 
+*.mat
 *.asv
 
 *.def
