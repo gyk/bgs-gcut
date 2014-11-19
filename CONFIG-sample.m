@@ -1,7 +1,7 @@
 classdef CONFIG
 	properties (Constant)
 
-	VIDEO_PATH = 'F:\HumanEva\';
+	HE_PATH = 'F:\HumanEva\';
 
 	HE_CODE_PATH = 'F:\HumanEva\Release_Code_v1_1_beta\';
 
