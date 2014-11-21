@@ -25,7 +25,6 @@ classdef CONFIG
 		addpath(CONFIG.HE_CODE_PATH);
 		addpath(fullfile(CONFIG.HE_CODE_PATH, 'TOOLBOX_calib/'));
 		addpath(fullfile(CONFIG.HE_CODE_PATH, 'TOOLBOX_common/'));
-		addpath(fullfile(CONFIG.HE_CODE_PATH, 'TOOLBOX_dxAvi/'));
 		addpath(fullfile(CONFIG.HE_CODE_PATH, 'TOOLBOX_readc3d/'));
 		addpath('.\HumanEvaExt');
 	end
