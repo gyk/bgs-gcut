@@ -16,6 +16,8 @@ classdef HEUtilities
 		% Suppresses the "Warning: Bad marker data" message.
 		warning('off', 'HumanEva:MarkerCoord2Xform');
 
+		offsetIgnored = false(length(heDataset), 1);
+
 		for i = 1:length(heDataset)
 			he = heDataset(i);
 			subject = he.SubjectName;
@@ -23,6 +25,13 @@ classdef HEUtilities
 			trial = he.Trial;
 
 			fprintf('Loading sequence #%d (%s, %s, %s)\n', i, subject, action, trial);
+			destPath = makeDstPath(subject, [action, '_', trial]);
+
+			if exist(destPath, 'file')
+				fprintf('File #%d "%s" exists. Ignored.\n--------\n', ...
+					i, destPath);
+				continue;
+			end
 
 			% the static C3D MoCap data
 			c3dStatic = c3d_st_path(he);
@@ -31,7 +40,10 @@ classdef HEUtilities
 			% C3D MoCap data (the actual motion data)
 			c3d = c3d_path(he);
 
-			% creates the mocap stream
+
+
+			if HEUtilities.hasNoVideo(he)
+			% Simply ignores offset information.
 			% 
 			% WORKAROUND:
 			% I have to pass offset = 1 to create mocap_stream (which defaults to 0) 
@@ -47,16 +59,23 @@ classdef HEUtilities
 			% And actually the last valid frame is he_dataset.FrameEnd + 1. 
 			% Hence if offset = 0 is passed, it should loop from frameStart 
 			% to frameEnd + 1.
-			% It may be a bug of HumanEva's code.
-
-			mocapStream = mocap_stream(c3d, c3dStatic, mp, 1);
-			destPath = makeDstPath(subject, [action, '_', trial]);
-
-			if exist(destPath, 'file')
-				fprintf('File #%d "%s" exists. Ignored.\n--------\n', ...
-					i, destPath);
-				continue;
+			% 
+				offsetIgnored(i) = true;
+				offset = 1;
+			else
+				% OFS synchronization files
+				offset = 0;
+				for c = {'C1', 'C2', 'C3'}
+					ofs = sync_path(he, c{1});
+					offsets = load(ofs);
+					assert(offsets(2) > 0);
+					offset = offset + offsets(2);
+				end
+				offset = round(offset / 3);
 			end
+
+			% creates the mocap stream
+			mocapStream = mocap_stream(c3d, c3dStatic, mp, offset);
 
 			frameStart = he.FrameStart;
 			frameEnd = he.FrameEnd;
@@ -99,6 +118,8 @@ classdef HEUtilities
 			fprintf('\nSaved.\n');
 		end
 		warning('on', 'HumanEva:MarkerCoord2Xform');
+		% make sure they are not mixed together
+		assert(all(offsetIgnored) || all(~offsetIgnored));
 		fprintf('\nDone.\n');
 	end
 
@@ -117,6 +138,12 @@ classdef HEUtilities
 		end
 
 		heDataset = heDataset(flags);
+	end
+
+	function flag = hasNoVideo(he)
+	% Whether it has no associated video (which means we can ignore offset 
+	% (synchronization) files)
+		flag = isequal(he.Trial, '3');
 	end
 
 	function tryMkdir(path)
