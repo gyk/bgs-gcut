@@ -32,7 +32,24 @@ classdef HEUtilities
 			c3d = c3d_path(he);
 
 			% creates the mocap stream
-			mocapStream = mocap_stream(c3d, c3dStatic, mp);
+			% 
+			% WORKAROUND:
+			% I have to pass offset = 1 to create mocap_stream (which defaults to 0) 
+			% because otherwise it will raise an error:
+			% 
+			%   ??? Subscript indices must either be real positive integers or 
+			%   logicals.
+			% 
+			%   Error in ==> mocap_stream.cur_frame at 111
+			%   if (any(sum(this.data.Markers(floor(this.current_position), ...
+			%       midx, :),3) == 0))
+			% 
+			% And actually the last valid frame is he_dataset.FrameEnd + 1. 
+			% Hence if offset = 0 is passed, it should loop from frameStart 
+			% to frameEnd + 1.
+			% It may be a bug of HumanEva's code.
+
+			mocapStream = mocap_stream(c3d, c3dStatic, mp, 1);
 			destPath = makeDstPath(subject, [action, '_', trial]);
 
 			if exist(destPath, 'file')
