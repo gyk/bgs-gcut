@@ -64,7 +64,7 @@ classdef VideoStream < handle
 		clb = struct();
 		[clb.fc, clb.cc, clb.alpha_c, clb.kc, ...
 			clb.Rc_ext, clb.omc_ext, clb.Tc_ext] = ReadSpicaCalib(calibPath);
-		obj.calibration = clb;	
+		obj.calibration = clb;
 	end
 
 	function im = at(obj, i)
