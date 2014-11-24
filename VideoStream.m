@@ -51,6 +51,12 @@ classdef VideoStream < handle
 		obj.mocapStart = offset(2);
 		obj.mocapScaling = offset(3);
 
+		if obj.mocapStart < 1
+		% nonpositive offset, increase videoStart
+			obj.videoStart = round(obj.videoStart - ...
+				(obj.mocapStart - 1) / obj.mocapScaling);
+		end
+
 		obj.videoReader = VideoReader(video_path(he, obj.camera));
 		obj.nFrames = getNFrames(obj.videoReader);
 

@@ -68,10 +68,14 @@ classdef HEUtilities
 				for c = {'C1', 'C2', 'C3'}
 					ofs = sync_path(he, c{1});
 					offsets = load(ofs);
-					assert(offsets(2) > 0);
 					offset = offset + offsets(2);
 				end
 				offset = round(offset / 3);
+				if offset < 1
+					% Keeps the offset of mocap stream as 1 and increases 
+					% the offset of video stream.
+					offset = 1;
+				end
 			end
 
 			% creates the mocap stream
