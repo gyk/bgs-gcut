@@ -39,7 +39,13 @@ classdef SkeletonDrawer
 			error('Unknown skeletonType.');
 		end
 
-		drawer.drawSkeleton(poseVec);
+		if numel(poseVec) == 14 * 3
+			drawer.drawSkeleton(poseVec);
+		elseif numel(poseVec) == 15 * 2
+			drawer.drawPose2d(poseVec);
+		else
+			error('Unrecognized pose.');
+		end
 	end
 
 	function drawManyInterp(poseVecs, drawImage)
@@ -290,6 +296,27 @@ classdef SkeletonDrawer
 		% Cornflower blue
 		surf(newX, newY, newZ, 'EdgeColor', 'none', ...
 			'FaceColor', [0.392157, 0.584314, 0.929412]);
+	end
+
+	function drawPose2d(obj, pose2d)
+		pose = reshape(pose2d, [15, 2]);
+		hold on;
+		axis ij;
+		
+		for i = 1:size(obj.bones, 1)
+			fromTo = obj.bones(i, :);
+			x1 = pose(fromTo(1), 1);
+			y1 = pose(fromTo(1), 2);
+			x2 = pose(fromTo(2), 1);
+			y2 = pose(fromTo(2), 2);
+			
+			% draws bones
+			line([x1, x2], [y1, y2], 'LineWidth', 2, 'LineSmoothing', 'on');
+			% draws joints
+			plot([x1; x2], [y1; y2], '.g', 'LineWidth', 16);
+		end
+		axis equal;
+		hold off;
 	end
 	end
 end
