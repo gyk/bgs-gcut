@@ -92,7 +92,8 @@ classdef VideoStream < handle
 	end
 
 	function im = bwAt(obj, i)
-		error('Not implemented yet.');
+		im = obj.at(i);
+		im = obj.bgModel.subtract(im);
 	end
 
 	function [pose, origin] = associatedPoseAt(obj, iVideo)
