@@ -14,6 +14,9 @@ classdef VideoStream < handle
 	videoReader;
 	nFrames;
 	calibration;
+
+	% For background subtraction
+	bgModel;
 	end
 
 	properties (Constant)
@@ -69,6 +72,23 @@ classdef VideoStream < handle
 
 	function im = at(obj, i)
 		im = obj.videoReader.read(i);
+	end
+
+	function modelBackground(obj)
+		bgModelSavePath = [strrep(video_path(obj.heData, obj.camera), ...
+			'Image_Data', 'BG_Model'), '.mat'];
+
+		if exist(bgModelSavePath, 'file') == 2
+			load(bgModelSavePath);  % for `bgModel`
+			obj.bgModel = bgModel;
+			return;
+		else
+			obj.bgModel = BackgroundModel();
+			obj.bgModel.train(obj.videoReader, 200);
+			bgModel = obj.bgModel;
+			HEUtilities.tryMkdir(bgModelSavePath);
+			save(bgModelSavePath, 'bgModel');
+		end
 	end
 
 	function im = bwAt(obj, i)
