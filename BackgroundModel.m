@@ -238,8 +238,8 @@ classdef BackgroundModel < handle
 		[spH, spW] = size(connections);
 		spVert = sparse(vertInd, vertInd + 1, true, spH, spW, numel(vertInd));
 		spHorz = sparse(horzInd, horzInd + h, true, spH, spW, numel(horzInd));
-		connections(spVert) = 0;
-		connections(spHorz) = 0;
+		connections = spAssignZero(connections, spVert);
+		connections = spAssignZero(connections, spHorz);
 		assert(nnz(connections) + nnz(spVert) + nnz(spHorz) == nnz(obj.connections));
 	end
 
@@ -309,4 +309,19 @@ classdef BackgroundModel < handle
 		label = ~cut(3:end);
 	end
 	end % methods (Static)
+end
+
+function [sp] = spAssignZero(sp, spLogical)
+	s = mexext();
+	switch s(end - 1:end)
+	case '64'
+		sp(spLogical) = 0;
+	case '32'
+	% Equivalent to 64-bit version above, but avoids the "Maximum variable 
+	% size allowed by the program is exceeded" error on 32-bit platform.
+		[nnzI, nnzJ] = find(spLogical);
+		for i = 1:numel(nnzI)
+			sp(nnzI(i), nnzJ(i)) = 0;
+		end
+	end
 end
