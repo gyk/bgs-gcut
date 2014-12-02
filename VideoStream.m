@@ -91,9 +91,25 @@ classdef VideoStream < handle
 		end
 	end
 
-	function im = bwAt(obj, i)
-		im = obj.at(i);
-		im = obj.bgModel.subtract(im);
+	function [im, cheated] = bwAt(obj, iVideo, cheating)
+		if ~exist('cheating', 'var')
+			cheating = false;
+		end
+
+		im = obj.at(iVideo);
+
+		if ~cheating || obj.getValidInd(iVideo) == 0
+			cheated = false;
+			im = obj.bgModel.subtract(im);
+			return;
+		end
+
+		joints2d = obj.projectTo2d(iVideo);
+		shapePrior = makeShapePrior(joints2d', ...
+			[obj.videoReader.Height, obj.videoReader.Width]);
+		shapePrior = imresize(shapePrior, ...
+			obj.bgModel.bgStat.width / obj.videoReader.Width, 'nearest');
+		im = obj.bgModel.subtract(im, shapePrior);
 	end
 
 	function [pose, origin] = associatedPoseAt(obj, iVideo)
@@ -160,6 +176,31 @@ classdef VideoStream < handle
 			assert(~isempty(joints2d));
 
 			SkeletonDrawer.draw(joints2d');
+			set(gcf, 'Name', sprintf('    %i <-> %i', iVideo, iMocap));
+			pause;
+		end
+	end
+
+	function videoShapePriorOverlapped(obj)
+		mocapIndices = obj.getValidInd((1:obj.nFrames)');
+
+		for iVideo = 1:obj.nFrames
+			iMocap = mocapIndices(iVideo);
+			if iMocap == 0
+				continue;
+			end
+
+			im = obj.at(iVideo);
+			joints2d = obj.projectTo2d(iVideo);
+			assert(~isempty(joints2d));
+			sp = makeShapePrior(joints2d', ...
+				[obj.videoReader.Height, obj.videoReader.Width]);
+			im = im2double(im);
+			sp = double(sp);
+			for ch = 1:3
+				im(:, :, ch) = im(:, :, ch) .* sp;
+			end
+			imshow(im);
 			set(gcf, 'Name', sprintf('    %i <-> %i', iVideo, iMocap));
 			pause;
 		end

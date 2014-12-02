@@ -253,8 +253,12 @@ classdef BackgroundModel < handle
 		foreground = obj.subtract(videoReader.read(i));
 	end
 
-	function [foreground] = subtract(obj, im)
+	function [foreground] = subtract(obj, im, shapePrior)
 	% foreground: h-by-w matrix where 1s indicate foreground pixels.
+		if ~exist('shapePrior', 'var')
+			shapePrior = [];
+		end
+
 		if ~isempty(obj.preprocessor)
 			im = obj.preprocessor(im);
 		end
@@ -272,6 +276,13 @@ classdef BackgroundModel < handle
 		if obj.nu == 0
 			foreground = bgPenal > obj.Delta_FG;
 			return;
+		end
+
+		% Uses pose-specific shape prior for background subtraction.
+		% It is basically cheating.
+		if ~isempty(shapePrior)
+			% FIXME: make the parameter tunable
+			bgPenal = bgPenal .* double(shapePrior .* 5);
 		end
 
 		% the edge weights from pixel nodes to sink
