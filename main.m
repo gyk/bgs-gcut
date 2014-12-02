@@ -25,7 +25,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Test background subtraction in VideoStream
+%% Setup background model in VideoStream
 CONFIG.addPaths();
 hes = HEUtilities.select(CONFIG.REAL_TE_FILTER);
 HEUtilities.extractPoses(hes, CONFIG.REAL_TE_SUFFIX);
@@ -39,11 +39,26 @@ camera = upper(input('Choose the camera: ', 's'));
 vs = VideoStream('heData', he, 'camera', camera);
 vs.modelBackground();
 
+%% VideoStream background subtraction, frame by frame
 for i = 1:3:vs.nFrames
 	subplot(1, 2, 1);
 	imshow(vs.at(i));
 	subplot(1, 2, 2);
 	imshow(vs.bwAt(i));
 	xlabel(['#', num2str(i)])
+	pause;
+end
+
+%% VideoStream background subtraction, by cheating
+mocapIndices = vs.getValidInd((1:vs.nFrames)');
+
+for iVideo = 1:vs.nFrames
+	iMocap = mocapIndices(iVideo);
+	if iMocap == 0
+		continue;
+	end
+
+	imshow(vs.bwAt(iVideo, true));
+	set(gcf, 'Name', sprintf('    %i <-> %i', iVideo, iMocap));
 	pause;
 end
