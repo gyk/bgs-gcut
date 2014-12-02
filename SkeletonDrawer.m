@@ -48,6 +48,16 @@ classdef SkeletonDrawer
 		end
 	end
 
+	function [shapePrior] = drawAsShapePrior(pose, imSize)
+		persistent BrownDrawer
+
+		if isempty(BrownDrawer)
+			BrownDrawer = SkeletonDrawer('Brown');
+		end
+		drawer = BrownDrawer;
+		shapePrior = drawer.drawPose2dOnMatrix(pose, imSize);
+	end
+
 	function drawManyInterp(poseVecs, drawImage)
 		lastDrawed = 0;
 		function drawImage_(i)
@@ -318,5 +328,28 @@ classdef SkeletonDrawer
 		axis equal;
 		hold off;
 	end
+
+	function [sp] = drawPose2dOnMatrix(obj, pose2d, imSize)
+		pose = reshape(pose2d, [15, 2]);
+		sp = false(imSize);
+
+		for i = 1:size(obj.bones, 1)
+			fromTo = obj.bones(i, :);
+			x1 = pose(fromTo(1), 1);
+			y1 = pose(fromTo(1), 2);
+			x2 = pose(fromTo(2), 1);
+			y2 = pose(fromTo(2), 2);
+
+			sp = lineOnMatrix(sp, x1, y1, x2, y2);
+		end
 	end
+	end
+end
+
+function [bw] = lineOnMatrix(bw, x1, y1, x2, y2)
+	nDivs = max(abs(x1 - x2), abs(y1 - y2));
+	xs = round(linspace(x1, x2, nDivs));
+	ys = round(linspace(y1, y2, nDivs));
+	indices = sub2ind(size(bw), ys, xs);
+	bw(indices) = true;
 end
