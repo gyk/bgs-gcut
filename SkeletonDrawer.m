@@ -1,6 +1,7 @@
 classdef SkeletonDrawer
 	properties (Access = private)
 	bones;
+	bonePelvisToThorax;  % for shape prior
 	up;  % UP axis, e.g. [0 1 0]
 
 	% coordinates of sphere
@@ -179,6 +180,8 @@ classdef SkeletonDrawer
 				RightElbow, RightWrist;
 				Thorax, Head;
 			];
+			obj.bonePelvisToThorax = [Pelvis, Thorax];
+
 			r = 30;
 			cyR = 20;
 			obj.preprocessor = @deal;
@@ -342,6 +345,18 @@ classdef SkeletonDrawer
 
 			sp = lineOnMatrix(sp, x1, y1, x2, y2);
 		end
+
+		% The torso is wider than other parts.
+		% Special treatment for the bone between Pelvis and Thorax.
+		x1 = pose(obj.bonePelvisToThorax(1), 1);
+		y1 = pose(obj.bonePelvisToThorax(1), 2);
+		x2 = pose(obj.bonePelvisToThorax(2), 1);
+		y2 = pose(obj.bonePelvisToThorax(2), 2);
+
+		yDev = abs(y1 - y2);
+		xOffset = yDev / 6;
+		sp = lineOnMatrix(sp, x1-xOffset, y1, x2-xOffset, y2);
+		sp = lineOnMatrix(sp, x1+xOffset, y1, x2+xOffset, y2);
 	end
 	end
 end
