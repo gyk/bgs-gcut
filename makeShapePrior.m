@@ -6,5 +6,5 @@ function [sp] = makeShapePrior(joints2d, imSize)
 	sp = SkeletonDrawer.drawAsShapePrior(joints2d, imSize);
 	sp = bwdist(sp);
 	% TODO: choose better parameters
-	sp = 1 ./ (1 + exp(0.08 * (sp - yDev / 18)));
+	sp = 1 ./ (1 + exp(0.15 * (sp - yDev / 18)));
 end

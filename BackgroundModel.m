@@ -282,7 +282,7 @@ classdef BackgroundModel < handle
 		% It is basically cheating.
 		if ~isempty(shapePrior)
 			% FIXME: make the parameter tunable
-			bgPenal = bgPenal .* double(shapePrior .* 5);
+			bgPenal = bgPenal .* double(shapePrior .* 9);
 		end
 
 		% the edge weights from pixel nodes to sink
