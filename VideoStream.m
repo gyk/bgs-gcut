@@ -91,6 +91,13 @@ classdef VideoStream < handle
 		end
 	end
 
+	function loadStBgStat(obj)
+		load(fullfile(CONFIG.BG_PATH, sprintf('Background_(%s).mat', ...
+			obj.camera)));  % loads `stBgStat`
+		obj.bgModel = BackgroundModel();
+		obj.bgModel.loadBgStat(stBgStat);
+	end
+
 	function [im, cheated] = bwAt(obj, iVideo, cheating)
 		if ~exist('cheating', 'var')
 			cheating = false;

@@ -182,6 +182,14 @@ classdef BackgroundModel < handle
 		fprintf('Done.\n');
 	end
 
+	function loadBgStat(obj, bgStat)
+		obj.bgStat = bgStat;
+		obj.setNearToZero();
+		obj.setBgEdges();
+		obj.connections = ...
+			pixCon2d([obj.bgStat.height, obj.bgStat.width]);
+	end
+
 	function [z] = zScore(obj, imHSV)
 		assert(isequal(class(imHSV), 'double'));
 
