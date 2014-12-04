@@ -3,6 +3,7 @@ classdef BackgroundModel < handle
 	properties
 	% Parameters: 
 	preprocessor;
+	postprocessor;
 	z_H;
 	z_V;
 	W_H;
@@ -44,6 +45,8 @@ classdef BackgroundModel < handle
 
 		addParamValue(p, 'preprocessor', @BackgroundModel.videoPreprocess, ...
 			@(x) isa(x, 'function_handle'));
+		addParamValue(p, 'postprocessor', @BackgroundModel.fgPostprocess, ...
+			@(x) isa(x, 'function_handle'));
 		parse(p, varargin{:});
 
 		function setField(fname)
@@ -51,6 +54,7 @@ classdef BackgroundModel < handle
 		end
 
 		setField('preprocessor');
+		setField('postprocessor');
 		setField('z_H');
 		setField('z_V');
 		setField('W_H');
@@ -291,6 +295,10 @@ classdef BackgroundModel < handle
 		foreground = BackgroundModel.graphCut( ...
 			[bgPenal(:)'; fgPenal(:)'], connections);
 		foreground = reshape(foreground, [h, w]);
+
+		if ~isempty(obj.postprocessor)
+			foreground = obj.postprocessor(foreground);
+		end
 	end
 	end % methods
 
@@ -298,6 +306,20 @@ classdef BackgroundModel < handle
 	function im = videoPreprocess(im)
 		im = imresize(im, 0.5);
 		im = double(im) / 255;
+	end
+
+	function bw = fgPostprocess(bw)
+		cc = bwconncomp(bw);
+		areas = cellfun(@numel, cc.PixelIdxList);
+		bw = false(size(bw));
+
+		fgInd = find(areas >= 300);
+		for i = fgInd
+			bw(cc.PixelIdxList{i}) = true;
+		end
+
+		% fills the gaps, removes noise
+		bw = medfilt2(bw, [3 3]);
 	end
 
 	function [vertical, horizontal] = findEdges(H, S, V)
