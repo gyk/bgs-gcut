@@ -3,6 +3,7 @@ function [stBgStat] = modelStaticBgStat(camera)
 	nRecords = 3;
 	allBgStat = cell(nRecords, 1);
 	ns = zeros(nRecords, 1);
+
 	for i = 1:nRecords
 		baseName = sprintf('Background_%d_(%s).avi', i, camera);
 		videoPath = fullfile(CONFIG.BG_PATH, baseName);
@@ -30,4 +31,5 @@ function [stBgStat] = modelStaticBgStat(camera)
 	[stBgStat.meanH, stBgStat.devH] = MathHelper.mergeStats(meansH, stdsH, ns);
 	[stBgStat.meanS, stBgStat.devS] = MathHelper.mergeStats(meansS, stdsS, ns);
 	[stBgStat.meanV, stBgStat.devV] = MathHelper.mergeStats(meansV, stdsV, ns);
+	[stBgStat.height, stBgStat.width] = size(stBgStat.meanH);
 end
