@@ -131,6 +131,35 @@ classdef VideoStream < handle
 		iMocap(iMocap > 0) = obj.frameNo(iMocap(iMocap > 0));
 	end
 
+	function [joints2d] = projectTo2d(obj, iVideo)
+		[pose, origin] = obj.associatedPoseAt(iVideo);
+		if isempty(pose)
+			joints2d = [];
+			return;
+		end
+
+		joints3d = [origin', bsxfun(@plus, reshape(pose, [3, 14]), origin')];
+		clb = obj.calibration;
+		joints2d = project_points2(joints3d, clb.omc_ext, clb.Tc_ext, ...
+			clb.fc, clb.cc, clb.kc, clb.alpha_c);
+	end
+
+	% Video index <-> Mocap index Conversion
+	% Here 0 is a placeholder for obj.mocapStart.
+	function iMocap = indVideoToMocap(obj, iVideo)
+		iVideo = iVideo + VideoStream.EXTRA_OFFSET;
+		iMocap = round(0 + ...
+			(iVideo - obj.videoStart) * obj.mocapScaling);
+	end
+
+	function iVideo = indMocapToVideo(obj, iMocap)
+		iVideo = round(obj.videoStart + ...
+			(iMocap - 0) / obj.mocapScaling);
+		iVideo = iVideo - VideoStream.EXTRA_OFFSET;
+	end
+
+	% ------------ Testing ------------ %
+
 	function videoMocapSideBySide(obj)
 		mocapIndices = obj.getValidInd((1:obj.nFrames)');
 
@@ -147,19 +176,6 @@ classdef VideoStream < handle
 			set(gcf, 'Name', sprintf('    %i <-> %i', iVideo, iMocap));
 			pause;
 		end
-	end
-
-	function [joints2d] = projectTo2d(obj, iVideo)
-		[pose, origin] = obj.associatedPoseAt(iVideo);
-		if isempty(pose)
-			joints2d = [];
-			return;
-		end
-
-		joints3d = [origin', bsxfun(@plus, reshape(pose, [3, 14]), origin')];
-		clb = obj.calibration;
-		joints2d = project_points2(joints3d, clb.omc_ext, clb.Tc_ext, ...
-			clb.fc, clb.cc, clb.kc, clb.alpha_c);
 	end
 
 	function videoMocap2dOverlapped(obj)
@@ -204,20 +220,6 @@ classdef VideoStream < handle
 			set(gcf, 'Name', sprintf('    %i <-> %i', iVideo, iMocap));
 			pause;
 		end
-	end
-
-	% Video index <-> Mocap index Conversion
-	% Here 0 is a placeholder for obj.mocapStart.
-	function iMocap = indVideoToMocap(obj, iVideo)
-		iVideo = iVideo + VideoStream.EXTRA_OFFSET;
-		iMocap = round(0 + ...
-			(iVideo - obj.videoStart) * obj.mocapScaling);
-	end
-
-	function iVideo = indMocapToVideo(obj, iMocap)
-		iVideo = round(obj.videoStart + ...
-			(iMocap - 0) / obj.mocapScaling);
-		iVideo = iVideo - VideoStream.EXTRA_OFFSET;
 	end
 	end
 end
