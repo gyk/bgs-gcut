@@ -127,11 +127,12 @@ classdef HEUtilities
 		fprintf('\nDone.\n');
 	end
 
-	function [heDataset] = select(predicate)
+	function [heDataset] = select(predicate, heDataset)
 	% predicate: a partition will be selected if predicate(partition) 
 	%     == true. e.g. @(part) isequal(part.ActionType, 'Jog');
-	%   
-		heDataset = he_dataset('HumanEvaI', 'All');
+		if ~exist('heDataset', 'var')
+			heDataset = he_dataset('HumanEvaI', 'All');
+		end
 
 		flags = false(numel(heDataset), 1);
 
