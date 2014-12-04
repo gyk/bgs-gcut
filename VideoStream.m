@@ -124,6 +124,58 @@ classdef VideoStream < handle
 		origin = obj.origins(iMocap, :);
 	end
 
+	function saveSnapshots(obj, saveNoMocap)
+	% saveNoMocap: saves all frames even if they do not have associated 
+	%     mocap data.
+		if ~exist('saveNoMocap', 'var')
+			saveNoMocap = false;
+		end
+
+		he = obj.heData;
+		% PNG uses run-length encoding, which is suitable for binary images.
+		pathTemplate = fullfile(CONFIG.SNAPSHOT_PATH, he.SubjectName, ...
+			sprintf('%s_%s', he.ActionType, he.Trial), ...
+			[obj.camera, '-', '%04d.png']);
+		pathTemplate = strrep(pathTemplate, '\', '/');
+		HEUtilities.tryMkdir(pathTemplate);
+
+		pip = printUtility('Processing %d frames: #', obj.nFrames);
+
+		if saveNoMocap
+			for iVideo = 1:obj.nFrames
+				pip(iVideo);
+				bw = obj.bwAt(iVideo);
+				dstPath = sprintf(pathTemplate, iVideo);
+				imwrite(bw, dstPath);
+			end
+		else
+			mocapIndices = obj.getValidInd((1:obj.nFrames)');
+			nAvailable = nnz(mocapIndices);
+
+			coordinates = zeros(nAvailable, size(obj.coordinates, 2));
+
+			i = 1;
+			for iVideo = 1:obj.nFrames
+				iMocap = mocapIndices(iVideo);
+				if iMocap == 0
+					continue;
+				end
+
+				pip(iVideo);
+				bw = obj.bwAt(iVideo, true);
+				dstPath = sprintf(pathTemplate, iVideo);
+				imwrite(bw, dstPath);
+
+				coordinates(i, :) = obj.coordinates(iMocap, :);
+				origins(i, :) = obj.origins(iMocap, :);
+				i = i + 1;
+			end
+
+			folder = fileparts(pathTemplate);
+			save(fullfile(folder, 'coordinates.mat'), 'coordinates', 'origins');
+		end
+	end
+
 	function iMocap = getValidInd(obj, iVideo)
 	% where iMocap(i) == 0 indicates invalid mocap data
 		iMocap = obj.indVideoToMocap(iVideo);
