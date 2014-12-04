@@ -25,6 +25,17 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Model static backgrounds
+for cam = {'C1', 'C2', 'C3'}
+	cam = cam{1};
+	fprintf('\n=> Static background modelling from camera %s...\n', cam);
+	stBgStat = modelStaticBgStat(cam);
+	save(fullfile(CONFIG.BG_PATH, sprintf('Background_(%s).mat', cam)), ...
+		'stBgStat');
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% Setup background model in VideoStream
 CONFIG.addPaths();
 hes = HEUtilities.select(CONFIG.REAL_TE_FILTER);
