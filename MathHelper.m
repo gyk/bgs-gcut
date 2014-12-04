@@ -24,5 +24,24 @@ classdef MathHelper
 		% back to polar coordinates.
 		pMean = mod(angle(mean(exp(1.0i * th), dim)), 2*pi);
 	end
+
+	function [mean1, std1] = mergeStats(means, stds, ns)
+		assert(std([numel(means), numel(stds), numel(ns)]) == 0);
+		nCases = numel(ns);
+		allN = sum(ns);
+
+		mean1 = zeros(size(means{1}));
+		std1 = zeros(size(stds{1}));
+		for i = 1:nCases
+			mean1 = mean1 + means{i} * ns(i);
+		end
+		mean1 = mean1 ./ allN;
+
+		for i = 1:nCases
+			std1 = std1 + (stds{i} .^ 2) .* (ns(i) - 1) + ...
+				((means{i} - mean1) .^ 2) .* ns(i);
+		end
+		std1 = (std1 ./ (allN - 1)) .^ 0.5;
+	end
 	end
 end
