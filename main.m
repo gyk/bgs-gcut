@@ -73,3 +73,25 @@ for iVideo = 1:vs.nFrames
 	set(gcf, 'Name', sprintf('    %i <-> %i', iVideo, iMocap));
 	pause;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Save extracted silhouettes to disk
+CONFIG.addPaths();
+hes = HEUtilities.select(CONFIG.REAL_TE_FILTER);
+
+for i = 1:numel(hes)
+	for cam = {'C1', 'C2', 'C3'}
+		cam = cam{1};
+		he = hes(i);
+		fprintf('Processing sequence #%d (%s, %s, %s) - %s\n', i, ...
+			he.SubjectName, he.ActionType, he.Trial, cam);
+		vs = VideoStream('heData', he, 'camera', cam);
+		if CONFIG.USE_STATIC_BG(he)
+			vs.loadStBgStat();
+		else
+			vs.modelBackground();
+		end
+		vs.saveSnapshots();
+	end
+end
