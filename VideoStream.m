@@ -139,12 +139,21 @@ classdef VideoStream < handle
 		end
 
 		he = obj.heData;
+		destFolder = fullfile(CONFIG.SNAPSHOT_PATH, he.SubjectName, ...
+			sprintf('%s_%s', he.ActionType, he.Trial));
+
 		% PNG uses run-length encoding, which is suitable for binary images.
-		pathTemplate = fullfile(CONFIG.SNAPSHOT_PATH, he.SubjectName, ...
-			sprintf('%s_%s', he.ActionType, he.Trial), ...
-			[obj.camera, '-', '%04d.png']);
-		pathTemplate = strrep(pathTemplate, '\', '/');
-		HEUtilities.tryMkdir(pathTemplate);
+		baseNameTemplate = [obj.camera, '-', '%04d.png'];
+		makeDestPath = @(iVideo) fullfile(destFolder, ...
+			sprintf(baseNameTemplate, iVideo));
+		
+
+		doneIndicator = fullfile(destFolder, [obj.camera, '.done']);
+		HEUtilities.tryMkdir(doneIndicator);
+		if exist(doneIndicator, 'file') == 2
+			fprintf('\nIt seems that the snapshots have been saved. Ignored.\n\n');
+			return;
+		end
 
 		pip = printUtility('Processing %d frames: #', obj.nFrames);
 
@@ -152,14 +161,19 @@ classdef VideoStream < handle
 			for iVideo = 1:obj.nFrames
 				pip(iVideo);
 				bw = obj.bwAt(iVideo);
-				dstPath = sprintf(pathTemplate, iVideo);
-				imwrite(bw, dstPath);
+				destPath = makeDestPath(iVideo);
+				imwrite(bw, destPath);
 			end
 		else
 			mocapIndices = obj.getValidInd((1:obj.nFrames)');
 			nAvailable = nnz(mocapIndices);
 
-			coordinates = zeros(nAvailable, size(obj.coordinates, 2));
+			coordMatPath = fullfile(destFolder, 'coordinates.mat');
+			if exist('coordMatPath', 'file') ~= 2
+				coordinates = zeros(nAvailable, size(obj.coordinates, 2));
+			else
+				coordinates = [];
+			end
 
 			i = 1;
 			for iVideo = 1:obj.nFrames
@@ -170,16 +184,24 @@ classdef VideoStream < handle
 
 				pip(iVideo);
 				bw = obj.bwAt(iVideo, true);
-				dstPath = sprintf(pathTemplate, iVideo);
-				imwrite(bw, dstPath);
+				destPath = makeDestPath(iVideo);
+				imwrite(bw, destPath);
 
+				if isempty(coordinates)
+					continue;
+				end
 				coordinates(i, :) = obj.coordinates(iMocap, :);
 				origins(i, :) = obj.origins(iMocap, :);
 				i = i + 1;
 			end
 
-			folder = fileparts(pathTemplate);
-			save(fullfile(folder, 'coordinates.mat'), 'coordinates', 'origins');
+			fid = fopen(doneIndicator, 'w');
+			fprintf(fid, '%d\n', saveNoMocap);
+			fclose(fid);
+
+			if ~isempty(coordinates)
+				save(coordMatPath, 'coordinates', 'origins');
+			end
 		end
 	end
 
