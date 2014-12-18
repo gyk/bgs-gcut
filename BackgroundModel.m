@@ -284,17 +284,17 @@ classdef BackgroundModel < handle
 		% the edge weights from pixel nodes to source
 		bgPenal = obj.zScore(hsv);
 
-		% does not set connections between pixel nodes
-		if obj.nu == 0
-			foreground = bgPenal > obj.Delta_FG;
-			return;
-		end
-
 		% Uses pose-specific shape prior for background subtraction.
 		% It is basically cheating.
 		if ~isempty(shapePrior)
 			% FIXME: make the parameter tunable
 			bgPenal = bgPenal .* double(shapePrior .* 9);
+		end
+
+		% does not set connections between pixel nodes
+		if obj.nu == 0
+			foreground = bgPenal > obj.Delta_FG;
+			return;
 		end
 
 		% the edge weights from pixel nodes to sink
