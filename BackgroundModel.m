@@ -300,6 +300,12 @@ classdef BackgroundModel < handle
 		% the edge weights from pixel nodes to sink
 		fgPenal = repmat(obj.Delta_FG, size(bgPenal));
 
+		% Cheating: the pixels outside the region of skeleton must be 
+		% classified as background.
+		if ~isempty(shapePrior)
+			fgPenal(shapePrior < 0.15) = obj.Delta_FG * 10000;
+		end
+
 		foreground = BackgroundModel.graphCut( ...
 			[bgPenal(:)'; fgPenal(:)'], connections);
 		foreground = reshape(foreground, [h, w]);
