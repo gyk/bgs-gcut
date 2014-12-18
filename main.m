@@ -48,7 +48,11 @@ fprintf('Loading sequence #%d (%s, %s, %s)\n', i, ...
 	he.SubjectName, he.ActionType, he.Trial);
 camera = upper(input('Choose the camera: ', 's'));
 vs = VideoStream('heData', he, 'camera', camera);
-vs.modelBackground();
+if CONFIG.USE_STATIC_BG(he)
+	vs.loadStBgStat();
+else
+	vs.modelBackground();
+end
 
 %% VideoStream background subtraction, frame by frame
 for i = 1:3:vs.nFrames
