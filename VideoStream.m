@@ -39,8 +39,18 @@ classdef VideoStream < handle
 		he = obj.heData;
 		obj.camera = p.Results.camera;
 
+		if CONFIG.REAL_TR_FILTER(he)
+			suffix = CONFIG.REAL_TR_SUFFIX;
+		elseif CONFIG.REAL_TE_FILTER(he)
+			suffix = CONFIG.REAL_TE_SUFFIX;
+		elseif CONFIG.SYNTH_TR_FILTER(he)
+			suffix = CONFIG.SYNTH_TR_FILTER;
+			warning('VideoStream:noVideo', ...
+				'This partition does not contain video data');
+		end
+
 		mocapBaseName = sprintf('%s_%s.%s.mat', he.ActionType, he.Trial, ...
-			CONFIG.REAL_TE_SUFFIX);
+			suffix);
 		mocapPath = fullfile(CONFIG.HE_PATH, he.SubjectName, ...
 			'Mocap_Data_Packed', mocapBaseName);
 		load(mocapPath);  % For `coordinates`, `frameNo` & `origins`
