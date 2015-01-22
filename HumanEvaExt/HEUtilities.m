@@ -87,7 +87,7 @@ classdef HEUtilities
 			% the coordinates to be written to the disk
 			coordinates = zeros(frameEnd - frameStart + 1, 14 * 3);
 			% the coordinate of the pelvis joint (root)
-			origins = zeros(frameEnd, 3);
+			origins = zeros(frameEnd - frameStart + 1, 3);
 
 			% NOTE: The Train data of trial #1 starts at half the length 
 			% of the whole mocap stream.
