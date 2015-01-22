@@ -62,24 +62,31 @@ classdef HEUtilities
 			% 
 				offsetIgnored(i) = true;
 				offset = 1;
+				scale = 1;
 			else
 				% OFS synchronization files
 				offset = 0;
+				scale = 0;
+
 				for c = {'C1', 'C2', 'C3'}
 					ofs = sync_path(he, c{1});
 					offsets = load(ofs);
 					offset = offset + offsets(2);
+					scale = scale + offsets(3);
 				end
+
 				offset = round(offset / 3);
 				if offset < 1
 					% Keeps the offset of mocap stream as 1 and increases 
 					% the offset of video stream.
 					offset = 1;
 				end
+
+				scale = scale / 3;
 			end
 
 			% creates the mocap stream
-			mocapStream = mocap_stream(c3d, c3dStatic, mp, offset);
+			mocapStream = mocap_stream(c3d, c3dStatic, mp, offset, scale);
 
 			frameStart = he.FrameStart;
 			frameEnd = he.FrameEnd;
